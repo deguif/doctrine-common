@@ -406,6 +406,18 @@ class ProxyGeneratorTest extends TestCase
     }
 
     /**
+     * @requires PHP >= 8.2.0
+     */
+    public function testReadOnlyClassThrowsException()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unable to create a proxy for a readonly class "' . ReadOnlyClass::class . '".');
+
+        $proxyGenerator = new ProxyGenerator(__DIR__ . '/generated', __NAMESPACE__ . 'Proxy');
+        $proxyGenerator->generateProxyClass($this->createClassMetadata(ReadOnlyClass::class, []));
+    }
+
+    /**
      * @requires PHP >= 8.0.0
      */
     public function testPhp8CloneWithVoidReturnType()
@@ -602,7 +614,22 @@ class ProxyGeneratorTest extends TestCase
         );
 
         self::assertStringContainsString(
-            'constInDefault(string $foo = \Doctrine\Tests\Common\Util\TestAsset\ConstProvider::FOO): void',
+            'scalarConstInDefault(string $foo = \'foo\'): void',
+            file_get_contents(__DIR__ . '/generated/__CG__DoctrineTestsCommonProxyPHP81NewInInitializers.php')
+        );
+
+        self::assertStringContainsString(
+            'constInDefault(array $foo = \Doctrine\Tests\Common\Util\TestAsset\ConstProvider::FOO): void',
+            file_get_contents(__DIR__ . '/generated/__CG__DoctrineTestsCommonProxyPHP81NewInInitializers.php')
+        );
+
+        self::assertStringContainsString(
+            "globalEolInDefault(string \$foo = '\n'): void",
+            file_get_contents(__DIR__ . '/generated/__CG__DoctrineTestsCommonProxyPHP81NewInInitializers.php')
+        );
+
+        self::assertStringContainsString(
+            "specialCharacterInDefault(string \$foo = '\n'): void",
             file_get_contents(__DIR__ . '/generated/__CG__DoctrineTestsCommonProxyPHP81NewInInitializers.php')
         );
     }
